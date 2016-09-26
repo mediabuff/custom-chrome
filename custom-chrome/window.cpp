@@ -16,6 +16,7 @@ namespace platform {
         window_class.lpfnWndProc = event_handler;
         window_class.lpszClassName = L"window_class";
         window_class.style = CS_VREDRAW | CS_HREDRAW;
+        // Do the icon for the taskbar yourself. :P
 
         RegisterClassEx(&window_class);
 
@@ -25,14 +26,14 @@ namespace platform {
         AdjustWindowRect(&window_rectangle, WS_OVERLAPPEDWINDOW, false);
 
         system_window_handle = CreateWindowExW(
-            WS_EX_NOREDIRECTIONBITMAP, window_class.lpszClassName, L"", WS_OVERLAPPEDWINDOW, 100, 100,
+            WS_EX_NOREDIRECTIONBITMAP, window_class.lpszClassName, title.c_str(), WS_OVERLAPPEDWINDOW, 100, 100,
             window_rectangle.right, window_rectangle.bottom, nullptr, nullptr, window_class.hInstance, application_ptr
         );
 
         if (system_window_handle == nullptr) throw std::runtime_error{ "Failed to create a window." };
 
         auto hr = DwmExtendFrameIntoClientArea(system_window_handle, &margins);
-        if (FAILED(hr)) throw std::runtime_error{ "DWM failed to extend frame into the client area." };
+        if (FAILED(hr)) throw std::runtime_error { "DWM failed to extend frame into the client area." };
 
     }
 
