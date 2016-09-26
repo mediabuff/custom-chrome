@@ -28,7 +28,7 @@ namespace platform {
         window& operator=(window const&) = delete;
         window& operator=(window&&) = default;
 
-        ~window() = default;
+        ~window();
 
         auto show_window() -> void;
         auto get_system_window_handle() const { return system_window_handle; }

@@ -10,22 +10,12 @@ LRESULT CALLBACK process_message(HWND window_handle, UINT message, WPARAM wparam
     auto dwm_processed = DwmDefWindowProc(window_handle, message, wparam, lparam, &lr);
     auto application = reinterpret_cast<chrome::application*>(GetWindowLongPtr(window_handle, GWLP_USERDATA));
 
-    if (message == WM_NCCREATE) {
+    if (message == WM_CREATE) {
         auto create_struct = reinterpret_cast<CREATESTRUCT*>(lparam);
         SetWindowLongPtrW(window_handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(create_struct->lpCreateParams));
-    }
-
-    else if (message == WM_CREATE) {
-        RECT window_rectangle;
-        GetWindowRect(window_handle, &window_rectangle);
-
-        auto x = window_rectangle.left, y = window_rectangle.top;
-        // Client right and bottom, essentially.
-        auto width = window_rectangle.right - window_rectangle.left;
-        auto height = window_rectangle.bottom - window_rectangle.top;
 
         // We need to trigger recompute of the window and client area.
-        SetWindowPos(window_handle, nullptr, x, y, width, height, SWP_FRAMECHANGED);
+        SetWindowPos(window_handle, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
     }
 
     else if (message == WM_ACTIVATE) {

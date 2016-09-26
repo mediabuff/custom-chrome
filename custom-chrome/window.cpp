@@ -37,6 +37,10 @@ namespace platform {
 
     }
 
+    window::~window() {
+        DestroyWindow(system_window_handle);
+    }
+
     auto window::show_window() -> void {
 
         ShowWindow(system_window_handle, SW_SHOW);
