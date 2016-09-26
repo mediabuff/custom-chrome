@@ -35,7 +35,7 @@ LRESULT CALLBACK process_message(HWND window_handle, UINT message, WPARAM wparam
     }
 
     // Extends the client area all around (returning 0 when wparam is TRUE)
-    else if ((message == WM_NCCALCSIZE)) {
+    else if (message == WM_NCCALCSIZE) {
 
         auto client_area_needs_calculating = static_cast<bool>(wparam);
 
