@@ -89,7 +89,8 @@ namespace chrome {
             new_tab_symbol = std::make_unique<resource::image>(L"media/new_tab_symbol.png");
 
             renderer = std::make_unique<graphics::renderer>();
-            window = std::make_unique<platform::window>(L"Chrome management", 1200, 700, 80, 0, this, process_message);
+            auto caption_area_expansion_height = 80; // A value like 45 would remove the caption in this demo (firefoxy/chromey).
+            window = std::make_unique<platform::window>(L"Chrome management", 1200, 700, caption_area_expansion_height, this, process_message);
             renderer->attach_to_window(window->get_system_window_handle());
             window->show_window(); // Crucial separation that the window is valid when all the messages start flying.
 
@@ -144,7 +145,7 @@ namespace chrome {
             }, graphics::color{ 0.96f, 0.96f, 0.96f }
         );
 
-        paint_mock_caption();
+        if(margins.cyTopHeight > 74.0f) paint_mock_caption();
         paint_mock_tabs(client_area, margins);
         paint_mock_toolbar(client_area, margins);
         paint_mock_sidebar(client_area, margins);
@@ -156,27 +157,29 @@ namespace chrome {
 
     auto application::paint_mock_tabs(graphics::rectangle<float> const& window_rectangle, MARGINS const& margins) -> void {
 
-        renderer->draw_image(tab_raster.get(), graphics::point<float> {229.f, 80.0f - 28.0f}, 0.6f);
-        renderer->draw_image(new_tab_symbol.get(), graphics::point<float> {460.f, 80.0f - 22.0f}, 1.0f);
+        auto drawing_offset = margins.cyTopHeight;
+
+        renderer->draw_image(tab_raster.get(), graphics::point<float> {229.f, drawing_offset - 28.0f}, 0.6f);
+        renderer->draw_image(new_tab_symbol.get(), graphics::point<float> {460.f, drawing_offset - 22.0f}, 1.0f);
 
         renderer->draw_line(
-            graphics::point<float> { window_rectangle.left, 79.0f + 0.5f},
-            graphics::point<float> { window_rectangle.right, 79.0f + 0.5f},
+            graphics::point<float> { window_rectangle.left, drawing_offset - 1.0f + 0.5f},
+            graphics::point<float> { window_rectangle.right, drawing_offset - 1.0f + 0.5f},
             1.0f, graphics::color{ 0.77f, 0.77f, 0.77f, 1.0f }
         );
 
-        renderer->draw_image(tab_raster.get(), graphics::point<float> {10.0f, 80.0f - 28.0f}, 1.0f);
+        renderer->draw_image(tab_raster.get(), graphics::point<float> {10.0f, drawing_offset - 28.0f}, 1.0f);
 
         renderer->draw_text(
             L"Expand the frame into t...",
-            graphics::point<float>{ 48.f, 56.f },
+            graphics::point<float>{ 48.f, drawing_offset - 24.f },
             500.0f, 50.0f, L"Segoe UI", 14.0f,
             graphics::color{ 0.4f, 0.4f, 0.4f, 1.0f }
         );
 
         renderer->draw_text(
             L"Recompute the window...",
-            graphics::point<float>{ 221.f + 48.f, 56.f },
+            graphics::point<float>{ 221.f + 48.f, drawing_offset - 24.f },
             500.0f, 50.0f, L"Segoe UI", 14.0f,
             graphics::color{ 0.4f, 0.4f, 0.4f, 0.6f }
         );
@@ -237,8 +240,6 @@ namespace chrome {
 
 
     auto application::paint_mock_sidebar(graphics::rectangle<float> const& window_rectangle, MARGINS const& margins) -> void {
-
-        renderer->draw_image(new_tab_symbol.get(), graphics::point<float> {460.f, 80.0f - 22.0f}, 1.0f);
 
         renderer->fill_rectangle(
             graphics::rectangle<float> { 

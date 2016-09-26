@@ -19,8 +19,7 @@ namespace platform {
 
         window(
             std::wstring const& title, std::uint32_t const width, std::uint32_t const height,
-            std::uint32_t const caption_height, std::uint32_t const border_width, 
-            void* application_ptr, window_event_handler event_handler
+            std::uint32_t const caption_height, void* application_ptr, window_event_handler event_handler
         );
 
         window(window const&) = delete; // Cannot be copied.

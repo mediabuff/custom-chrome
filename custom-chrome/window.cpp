@@ -1,18 +1,17 @@
 #include "window.hpp"
 
 namespace platform {
-    window::window(std::wstring const & title, std::uint32_t const width, std::uint32_t const height, std::uint32_t const caption_height, std::uint32_t const border_width, void* application_ptr, window_event_handler event_handler) : title(title) {
+    window::window(std::wstring const & title, std::uint32_t const width, std::uint32_t const height, std::uint32_t const caption_height, void* application_ptr, window_event_handler event_handler) : title(title) {
 
         WNDCLASSEX window_class{};
 
-        margins.cxLeftWidth = margins.cxRightWidth = margins.cyBottomHeight = border_width;
+        margins.cxLeftWidth = margins.cxRightWidth = margins.cyBottomHeight = 0;
         margins.cyTopHeight = caption_height;
 
         window_class.cbSize = sizeof window_class;
         window_class.cbWndExtra = sizeof application_ptr;
         window_class.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
         window_class.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-        window_class.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
         window_class.hInstance = GetModuleHandleW(nullptr);
         window_class.lpfnWndProc = event_handler;
         window_class.lpszClassName = L"window_class";
