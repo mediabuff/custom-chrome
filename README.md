@@ -4,7 +4,7 @@ A repository dedicated to demonstrating how to build Win32 GUIs with content pro
 
 ## What this sample *isn't* about
 
-1. Code that you're supposed to drop into your code (it is for demonstration purposes only).
+1. Code that you're supposed to drop into your code **(it is for demonstration purposes only)**.
 2. Building a framework you can use for your applications.
 3. Implementing any logic behind the pretty face of it, mockup is just to show the potential.
 
