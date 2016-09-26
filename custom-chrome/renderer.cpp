@@ -45,11 +45,12 @@ namespace graphics {
         );
 
         IDWriteFactory* temporary_factory_dwrite;
-        DWriteCreateFactory(
+        hr = DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_ISOLATED, __uuidof(IDWriteFactory),
             reinterpret_cast<IUnknown**>(&temporary_factory_dwrite)
         );
         factory_dwrite.reset(temporary_factory_dwrite);
+        if (FAILED(hr)) throw std::runtime_error{ "Failed during creation of the DWrite factory." };
 
         hr = CoInitialize(nullptr);
         if (FAILED(hr)) throw std::runtime_error{ "Failed during CoInitialize." };
@@ -81,12 +82,14 @@ namespace graphics {
         device_d2d1.reset(temporary_device_d2d1);
 
         ID2D1DeviceContext* temporary_device_context_d2d1;
-        device_d2d1->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &temporary_device_context_d2d1);
+        hr = device_d2d1->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &temporary_device_context_d2d1);
         resource_device_context_d2d1.reset(temporary_device_context_d2d1);
+        if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the resource D2D device context." };
 
         IDCompositionDevice* temporary_device_dcomp;
-        DCompositionCreateDevice2(device_d2d1.get(), IID_PPV_ARGS(&temporary_device_dcomp));
+        hr = DCompositionCreateDevice2(device_d2d1.get(), IID_PPV_ARGS(&temporary_device_dcomp));
         device_dcomp.reset(temporary_device_dcomp);
+        if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the DComp device." };
 
         temporary_device_dxgi->Release();
 
@@ -97,8 +100,9 @@ namespace graphics {
         associated_window = window_handle;
 
         IDCompositionTarget* temporary_target;
-        device_dcomp->CreateTargetForHwnd(window_handle, true, &temporary_target);
+        auto hr = device_dcomp->CreateTargetForHwnd(window_handle, true, &temporary_target);
         window_target_dcomp.reset(temporary_target);
+        if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of DComp window target." };
 
         resize_buffer();
 
@@ -127,15 +131,15 @@ namespace graphics {
         primary_visual_dcomp.reset(temporary_visual);
 
         ID2D1DeviceContext* temporary_device_context_d2d1; POINT offset = {};
-        auto hr = window_surface_dcomp->BeginDraw(nullptr, IID_PPV_ARGS(&temporary_device_context_d2d1), &offset);
+        window_surface_dcomp->BeginDraw(nullptr, IID_PPV_ARGS(&temporary_device_context_d2d1), &offset);
         device_context_d2d1.reset(temporary_device_context_d2d1);
         offsetX = static_cast<float>(offset.x);
         offsetY = static_cast<float>(offset.y);
 
         device_context_d2d1->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0, 0.0f));
 
-        hr = primary_visual_dcomp->SetContent(window_surface_dcomp.get());
-        hr = window_target_dcomp->SetRoot(primary_visual_dcomp.get());
+        primary_visual_dcomp->SetContent(window_surface_dcomp.get());
+        window_target_dcomp->SetRoot(primary_visual_dcomp.get());
 
         ID2D1SolidColorBrush* temporary_brush;
         device_context_d2d1->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f), &temporary_brush);
@@ -146,8 +150,8 @@ namespace graphics {
 
     auto renderer::end_draw() -> void {
 
-        auto hr = window_surface_dcomp->EndDraw();
-        hr = device_dcomp->Commit();
+        window_surface_dcomp->EndDraw();
+        device_dcomp->Commit();
         primary_visual_dcomp.reset(nullptr);
 
     }
