@@ -214,7 +214,7 @@ namespace graphics {
             standard_text_format.get(), max_width, max_height, &temporary_text_layout
         );
 
-        com::unique_ptr<IDWriteTextLayout> text_layout{ temporary_text_layout };
+        auto text_layout = com::make_unique<IDWriteTextLayout>(temporary_text_layout);
 
         DWRITE_TEXT_RANGE text_range{}; text_range.length = static_cast<std::uint32_t>(text.size());
         text_layout->SetFontFamilyName(font_family.c_str(), text_range);
@@ -242,15 +242,15 @@ namespace graphics {
             WICDecodeOptions::WICDecodeMetadataCacheOnLoad, 
             &temporary_bitmap_decoder
         );
-        com::unique_ptr<IWICBitmapDecoder> bitmap_decoder{ temporary_bitmap_decoder };
+        auto bitmap_decoder = com::make_unique<IWICBitmapDecoder>(temporary_bitmap_decoder);
 
         IWICBitmapFrameDecode* temporary_frame_decode;
         bitmap_decoder->GetFrame(0, &temporary_frame_decode);
-        com::unique_ptr<IWICBitmapFrameDecode> zero_frame{ temporary_frame_decode };
+        auto zero_frame = com::make_unique<IWICBitmapFrameDecode>(temporary_frame_decode);
 
         IWICFormatConverter* temporary_format_converter;
         factory_wic->CreateFormatConverter(&temporary_format_converter);
-        com::unique_ptr<IWICFormatConverter> format_converter{ temporary_format_converter };
+        auto format_converter = com::make_unique<IWICFormatConverter>(temporary_format_converter);
 
         format_converter->Initialize(
             zero_frame.get(), GUID_WICPixelFormat32bppPBGRA, 
