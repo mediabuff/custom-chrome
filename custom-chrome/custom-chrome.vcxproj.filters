@@ -1,17 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="entrypoint.cpp" />
-    <ClCompile Include="chrome.cpp" />
-    <ClCompile Include="renderer.cpp" />
-    <ClCompile Include="window.cpp" />
+    <ClCompile Include="source\entrypoint.cpp" />
+    <ClCompile Include="source\application.cpp" />
+    <ClCompile Include="source\graphics\renderer.cpp" />
+    <ClCompile Include="source\platform\window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="chrome.hpp" />
-    <ClInclude Include="common.hpp" />
-    <ClInclude Include="window.hpp" />
-    <ClInclude Include="renderer.hpp" />
-    <ClInclude Include="window_helper.hpp" />
-    <ClInclude Include="image.hpp" />
+    <ClInclude Include="source\application.hpp" />
+    <ClInclude Include="source\com\memory.hpp" />
+    <ClInclude Include="source\com\runtime_validation.hpp" />
+    <ClInclude Include="source\graphics\image.hpp" />
+    <ClInclude Include="source\graphics\renderer.hpp" />
+    <ClInclude Include="source\platform\window.hpp" />
+    <ClInclude Include="source\platform\window_helper.hpp" />
+    <ClInclude Include="source\graphics\measure.hpp" />
   </ItemGroup>
 </Project>

@@ -3,14 +3,12 @@
 
 #pragma once
 #include <string>
-#include "common.hpp"
 
 // Extremely simple image resource, does nothing but formulate a handle essentially.
 // In the mockup application scenario, we just make every resource resident.
 // Again, this is just serves a visualization bonus on top of the explanation how to draw custom frames.
 namespace resource {
-    class image {
-    public:
+    struct image {
 
         image() = delete;
         image(std::wstring const& file_path) : file_path(file_path) {}

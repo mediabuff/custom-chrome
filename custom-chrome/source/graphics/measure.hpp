@@ -3,27 +3,25 @@
 
 #pragma once
 
-#include <memory>
 #include <cstdint>
-#include <stdexcept>
 
 namespace graphics {
-    template<typename t>
+    template<typename T>
     struct rectangle {
-        t left, top, right, bottom;
+        T left, top, right, bottom;
 
         rectangle() = default;
-        rectangle(t const left, t const top, t const right, t const bottom)
+        rectangle(T const left, T const top, T const right, T const bottom)
         : left(left), top(top), right(right), bottom(bottom) {}
 
     };
 
-    template<typename t>
+    template<typename T>
     struct point {
-        t x, y;
+        T x, y;
 
         point() = default;
-        point(t const x, t const y)
+        point(T const x, T const y)
         : x(x), y(y) {}
 
     };
@@ -40,13 +38,3 @@ namespace graphics {
 
     };
 }
-
-template <typename com_type>
-struct com_deleter {
-    void operator()(com_type* ptr) {
-        ptr->Release();
-    }
-};
-
-template <typename com_type>
-using unique_com_ptr = std::unique_ptr<com_type, com_deleter<com_type>>;

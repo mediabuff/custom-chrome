@@ -1,5 +1,6 @@
-#include "renderer.hpp"
 #include <array>
+
+#include <graphics/renderer.hpp>
 
 namespace graphics {
 
@@ -28,12 +29,12 @@ namespace graphics {
             D3D11_SDK_VERSION, &temporary_device, &received_feature_level, &temporary_context
         );
 
-        device_context_d3d11.reset(temporary_context);
-        device_d3d11.reset(temporary_device);
+        device_context_d3d11 = com::make_unique(temporary_context);
+        device_d3d11 = com::make_unique(temporary_device);
 
         ID2D1Factory* temporary_factory;
         hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &temporary_factory);
-        factory_d2d1.reset(temporary_factory);
+        factory_d2d1 = com::make_unique(temporary_factory);
 
         if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the D2D1 device." };
 
@@ -49,7 +50,7 @@ namespace graphics {
             DWRITE_FACTORY_TYPE_ISOLATED, __uuidof(IDWriteFactory),
             reinterpret_cast<IUnknown**>(&temporary_factory_dwrite)
         );
-        factory_dwrite.reset(temporary_factory_dwrite);
+        factory_dwrite = com::make_unique(temporary_factory_dwrite);
         if (FAILED(hr)) throw std::runtime_error{ "Failed during creation of the DWrite factory." };
 
         hr = CoInitialize(nullptr);
@@ -58,14 +59,14 @@ namespace graphics {
         IWICImagingFactory* temporary_factory_wic;
         hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&temporary_factory_wic));
         if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the WIC imaging factory." };
-        factory_wic.reset(temporary_factory_wic);
+        factory_wic = com::make_unique(temporary_factory_wic);
 
         IDWriteTextFormat* temporary_text_format;
         factory_dwrite->CreateTextFormat(
             L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
             DWRITE_FONT_STRETCH_NORMAL, 14.0f, L"en_US", &temporary_text_format
         );
-        standard_text_format.reset(temporary_text_format);
+        standard_text_format = com::make_unique(temporary_text_format);
 
         IDXGIDevice* temporary_device_dxgi;
         device_d3d11->QueryInterface<IDXGIDevice>(&temporary_device_dxgi);
@@ -79,16 +80,16 @@ namespace graphics {
                 D2D1_DEVICE_CONTEXT_OPTIONS_NONE
             ), &temporary_device_d2d1
         );
-        device_d2d1.reset(temporary_device_d2d1);
+        device_d2d1 = com::make_unique(temporary_device_d2d1);
 
         ID2D1DeviceContext* temporary_device_context_d2d1;
         hr = device_d2d1->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &temporary_device_context_d2d1);
-        resource_device_context_d2d1.reset(temporary_device_context_d2d1);
+        resource_device_context_d2d1 = com::make_unique(temporary_device_context_d2d1);
         if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the resource D2D device context." };
 
         IDCompositionDevice* temporary_device_dcomp;
         hr = DCompositionCreateDevice2(device_d2d1.get(), IID_PPV_ARGS(&temporary_device_dcomp));
-        device_dcomp.reset(temporary_device_dcomp);
+        device_dcomp = com::make_unique(temporary_device_dcomp);
         if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the DComp device." };
 
         temporary_device_dxgi->Release();
@@ -101,7 +102,7 @@ namespace graphics {
 
         IDCompositionTarget* temporary_target;
         auto hr = device_dcomp->CreateTargetForHwnd(window_handle, true, &temporary_target);
-        window_target_dcomp.reset(temporary_target);
+        window_target_dcomp = com::make_unique(temporary_target);
         if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of DComp window target." };
 
         resize_buffer();
@@ -114,13 +115,13 @@ namespace graphics {
         GetClientRect(associated_window, &window_rectangle);
 
         IDCompositionSurface* temporary_surface;
-        auto hr = device_dcomp->CreateSurface(
+        device_dcomp->CreateSurface(
             window_rectangle.right, window_rectangle.bottom, 
             DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_ALPHA_MODE_PREMULTIPLIED, 
             &temporary_surface
         );
         
-        window_surface_dcomp.reset(temporary_surface);
+        window_surface_dcomp = com::make_unique(temporary_surface);
 
     }
 
@@ -128,11 +129,11 @@ namespace graphics {
 
         IDCompositionVisual* temporary_visual;
         device_dcomp->CreateVisual(&temporary_visual);
-        primary_visual_dcomp.reset(temporary_visual);
+        primary_visual_dcomp = com::make_unique(temporary_visual);
 
         ID2D1DeviceContext* temporary_device_context_d2d1; POINT offset = {};
         window_surface_dcomp->BeginDraw(nullptr, IID_PPV_ARGS(&temporary_device_context_d2d1), &offset);
-        device_context_d2d1.reset(temporary_device_context_d2d1);
+        device_context_d2d1 = com::make_unique(temporary_device_context_d2d1);
         offsetX = static_cast<float>(offset.x);
         offsetY = static_cast<float>(offset.y);
 
@@ -143,7 +144,7 @@ namespace graphics {
 
         ID2D1SolidColorBrush* temporary_brush;
         device_context_d2d1->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f), &temporary_brush);
-        brush.reset(temporary_brush);
+        brush = com::make_unique(temporary_brush);
  
 
     }
@@ -213,11 +214,12 @@ namespace graphics {
             standard_text_format.get(), max_width, max_height, &temporary_text_layout
         );
 
-        unique_com_ptr<IDWriteTextLayout> text_layout{ temporary_text_layout };
+        com::unique_ptr<IDWriteTextLayout> text_layout{ temporary_text_layout };
 
         DWRITE_TEXT_RANGE text_range{}; text_range.length = static_cast<std::uint32_t>(text.size());
         text_layout->SetFontFamilyName(font_family.c_str(), text_range);
         text_layout->SetFontWeight(font_weight, text_range);
+        text_layout->SetFontSize(font_size, text_range);
 
         brush->SetColor(D2D1::ColorF(text_color.r, text_color.g, text_color.b, text_color.a));
         device_context_d2d1->DrawTextLayout(
@@ -240,15 +242,15 @@ namespace graphics {
             WICDecodeOptions::WICDecodeMetadataCacheOnLoad, 
             &temporary_bitmap_decoder
         );
-        unique_com_ptr<IWICBitmapDecoder> bitmap_decoder{ temporary_bitmap_decoder };
+        com::unique_ptr<IWICBitmapDecoder> bitmap_decoder{ temporary_bitmap_decoder };
 
         IWICBitmapFrameDecode* temporary_frame_decode;
         bitmap_decoder->GetFrame(0, &temporary_frame_decode);
-        unique_com_ptr<IWICBitmapFrameDecode> zero_frame{ temporary_frame_decode };
+        com::unique_ptr<IWICBitmapFrameDecode> zero_frame{ temporary_frame_decode };
 
         IWICFormatConverter* temporary_format_converter;
         factory_wic->CreateFormatConverter(&temporary_format_converter);
-        unique_com_ptr<IWICFormatConverter> format_converter{ temporary_format_converter };
+        com::unique_ptr<IWICFormatConverter> format_converter{ temporary_format_converter };
 
         format_converter->Initialize(
             zero_frame.get(), GUID_WICPixelFormat32bppPBGRA, 

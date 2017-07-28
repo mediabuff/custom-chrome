@@ -1,9 +1,11 @@
-#include "chrome.hpp"
 #include <array>
 #include <sstream>
-#include "window_helper.hpp"
+#include <dwmapi.h>
 
-LRESULT CALLBACK process_message(HWND window_handle, UINT message, WPARAM wparam, LPARAM lparam) {
+#include <application.hpp>
+#include <platform/window_helper.hpp>
+
+auto CALLBACK process_message(HWND window_handle, UINT message, WPARAM wparam, LPARAM lparam) -> LRESULT {
 
     LRESULT lr = 0;
     // Ask whether DWM would like to process the incoming message (to handle caption butans.
@@ -69,7 +71,7 @@ LRESULT CALLBACK process_message(HWND window_handle, UINT message, WPARAM wparam
 
 namespace chrome {
 
-    application::application(std::string command_line) {
+    application::application(char**, int) {
 
         try {
 

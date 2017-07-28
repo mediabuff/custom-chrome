@@ -6,10 +6,8 @@
 #include <Windows.h>
 #include <windowsx.h>
 
-#include "common.hpp"
-
 // Simplest variant, just to get you started.
-LRESULT compute_sector_of_window(HWND window_handle, WPARAM wparam, LPARAM lparam, int caption_height) {
+LRESULT compute_sector_of_window(HWND window_handle, WPARAM, LPARAM lparam, int caption_height) {
 
     // Acquire the window rect
     RECT window_rectangle;

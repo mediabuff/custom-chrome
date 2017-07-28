@@ -12,15 +12,14 @@
 #include <unordered_map>
 #include <string>
 
-#include "common.hpp"
-#include "image.hpp"
+#include <graphics/measure.hpp>
+#include <graphics/image.hpp>
+#include <com/memory.hpp>
 
 namespace graphics {
 
     // Just a simple renderer.
-    class renderer {
-
-    public:
+    struct renderer {
 
         renderer();
 
@@ -45,27 +44,27 @@ namespace graphics {
         auto get_texture(std::wstring const& filename)-> ID2D1Bitmap*;
         auto load_image_into_pool(std::wstring const& filename) -> ID2D1Bitmap*;
 
-        unique_com_ptr<ID3D11Device> device_d3d11;
-        unique_com_ptr<ID3D11DeviceContext> device_context_d3d11;
-        unique_com_ptr<ID2D1Factory> factory_d2d1;
-        unique_com_ptr<ID2D1RenderTarget> dxgi_render_target_d2d1;
-        unique_com_ptr<IDWriteFactory> factory_dwrite;
-        unique_com_ptr<IWICImagingFactory> factory_wic;
+        com::unique_ptr<ID3D11Device> device_d3d11;
+        com::unique_ptr<ID3D11DeviceContext> device_context_d3d11;
+        com::unique_ptr<ID2D1Factory> factory_d2d1;
+        com::unique_ptr<ID2D1RenderTarget> dxgi_render_target_d2d1;
+        com::unique_ptr<IDWriteFactory> factory_dwrite;
+        com::unique_ptr<IWICImagingFactory> factory_wic;
 
-        unique_com_ptr<ID2D1Device> device_d2d1;
-        unique_com_ptr<ID2D1DeviceContext> device_context_d2d1;
-        unique_com_ptr<ID2D1DeviceContext> resource_device_context_d2d1;
+        com::unique_ptr<ID2D1Device> device_d2d1;
+        com::unique_ptr<ID2D1DeviceContext> device_context_d2d1;
+        com::unique_ptr<ID2D1DeviceContext> resource_device_context_d2d1;
 
-        unique_com_ptr<ID2D1SolidColorBrush> brush;
-        unique_com_ptr<IDWriteTextFormat> standard_text_format;
+        com::unique_ptr<ID2D1SolidColorBrush> brush;
+        com::unique_ptr<IDWriteTextFormat> standard_text_format;
 
-        unique_com_ptr<IDCompositionDevice> device_dcomp;
-        unique_com_ptr<IDCompositionTarget> window_target_dcomp;
-        unique_com_ptr<IDCompositionVisual> primary_visual_dcomp;
-        unique_com_ptr<IDCompositionSurface> window_surface_dcomp;
-        unique_com_ptr<IDXGISurface> window_surface_dxgi;
+        com::unique_ptr<IDCompositionDevice> device_dcomp;
+        com::unique_ptr<IDCompositionTarget> window_target_dcomp;
+        com::unique_ptr<IDCompositionVisual> primary_visual_dcomp;
+        com::unique_ptr<IDCompositionSurface> window_surface_dcomp;
+        com::unique_ptr<IDXGISurface> window_surface_dxgi;
 
-        std::unordered_map<std::wstring, unique_com_ptr<ID2D1Bitmap>> resident_textures_map;
+        std::unordered_map<std::wstring, com::unique_ptr<ID2D1Bitmap>> resident_textures_map;
 
         HWND associated_window;
 

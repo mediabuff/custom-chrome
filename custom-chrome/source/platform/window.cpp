@@ -1,6 +1,7 @@
-#include "window.hpp"
+#include <platform/window.hpp>
 
 namespace platform {
+
     window::window(std::wstring const & title, std::uint32_t const width, std::uint32_t const height, std::uint32_t const caption_height, void* application_ptr, window_event_handler event_handler) : title(title) {
 
         WNDCLASSEX window_class{};
@@ -21,13 +22,20 @@ namespace platform {
         RegisterClassEx(&window_class);
 
         RECT window_rectangle{};
-        window_rectangle.right = width;
-        window_rectangle.bottom = height;
+        window_rectangle.top = 100;
+        window_rectangle.left = 100;
+        window_rectangle.right = width + window_rectangle.left;
+        window_rectangle.bottom = height + window_rectangle.top;
         AdjustWindowRect(&window_rectangle, WS_OVERLAPPEDWINDOW, false);
 
+        auto x = window_rectangle.left;
+        auto y = window_rectangle.top;
+        auto adjusted_width = window_rectangle.right - window_rectangle.left;
+        auto adjusted_height = window_rectangle.bottom - window_rectangle.top;
+
         system_window_handle = CreateWindowExW(
-            WS_EX_NOREDIRECTIONBITMAP, window_class.lpszClassName, title.c_str(), WS_OVERLAPPEDWINDOW, 100, 100,
-            window_rectangle.right, window_rectangle.bottom, nullptr, nullptr, window_class.hInstance, application_ptr
+            WS_EX_NOREDIRECTIONBITMAP, window_class.lpszClassName, title.c_str(), WS_OVERLAPPEDWINDOW, x, y,
+            adjusted_width, adjusted_height, nullptr, nullptr, window_class.hInstance, application_ptr
         );
 
         if (system_window_handle == nullptr) throw std::runtime_error{ "Failed to create a window." };
@@ -39,6 +47,7 @@ namespace platform {
 
     window::~window() {
         DestroyWindow(system_window_handle);
+        UnregisterClassW(L"window_class", GetModuleHandle(nullptr));
     }
 
     auto window::show_window() -> void {

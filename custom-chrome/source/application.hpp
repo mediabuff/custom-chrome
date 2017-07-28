@@ -4,18 +4,16 @@
 #pragma once
 #include <string>
 
-#include "common.hpp"
-#include "window.hpp"
-#include "renderer.hpp"
-#include "image.hpp"
+#include <platform/window.hpp>
+#include <graphics/renderer.hpp>
+#include <graphics/image.hpp>
 
 namespace chrome {
 
-    class application {
-    public:
+    struct application {
 
         application() = delete;
-        application(std::string command_line);
+        application(char** args, int argument_count);
 
         application(application const&) = delete;
         application(application&&) = delete;

@@ -6,14 +6,11 @@
 #include <Windows.h>
 #include <dwmapi.h>
 
-#include "common.hpp"
-
 namespace platform {
 
     using window_event_handler = LRESULT(CALLBACK*)(HWND window_handle, UINT message, WPARAM wparam, LPARAM);
 
-    class window {
-    public:
+    struct window {
 
         window() = delete;
 
