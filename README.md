@@ -2,6 +2,8 @@
 
 A repository dedicated to demonstrating how to build high-DPI aware Win32 GUIs with content protruding into the non-client area on Windows 10 (down to Vista where DWM was introduced), while preserving the user's Windows theme settings, doing the bare minimum in handling window behavior.
 
+![](http://i.imgur.com/UKcKYot.png)
+
 You can find a short recap on how it works [here](https://github.com/oberth/custom-chrome/wiki). This was developed for demonstration purposes at the behest of a friend who brought it up as a curiosity, with minimal time invested being the driving principle meaning the **code is quick and dirty**. It doesn't need further development, hence there will be no further development, maybe some feature here and there. It is licensed under MIT, as Unlicense has issues in certain countries. Enjoy.
 
 ## What this sample *isn't* about
