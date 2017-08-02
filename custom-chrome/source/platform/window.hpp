@@ -32,10 +32,23 @@ namespace platform {
         auto& get_margins() const { return margins; }
         auto& get_title() const { return title; }
 
+        auto get_client_area() {
+            RECT client_rectangle; GetClientRect(system_window_handle, &client_rectangle);
+            auto p2l_scaling_factor = 1.0f / user_scaling;
+
+            return RECT {
+                static_cast<int>(std::ceilf(p2l_scaling_factor * client_rectangle.left)),
+                static_cast<int>(std::ceilf(p2l_scaling_factor * client_rectangle.top)),
+                static_cast<int>(std::ceilf(p2l_scaling_factor * client_rectangle.right)),
+                static_cast<int>(std::ceilf(p2l_scaling_factor * client_rectangle.bottom)),
+            };
+        }
+
     private:
         HWND system_window_handle;
         std::wstring title;
         MARGINS margins;
+        float user_scaling;
     };
 
 }

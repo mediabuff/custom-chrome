@@ -11,6 +11,7 @@
 #include <wincodec.h>
 #include <unordered_map>
 #include <string>
+#include <cmath>
 
 #include <graphics/measure.hpp>
 #include <graphics/image.hpp>
@@ -69,7 +70,6 @@ namespace graphics {
         HWND associated_window;
 
         float dpiX, dpiY;
-        float offsetX, offsetY;
 
     };
 

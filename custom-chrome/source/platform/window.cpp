@@ -1,4 +1,5 @@
 #include <platform/window.hpp>
+#include <cmath>
 
 namespace platform {
 
@@ -6,8 +7,11 @@ namespace platform {
 
         WNDCLASSEX window_class{};
 
-        margins.cxLeftWidth = margins.cxRightWidth = margins.cyBottomHeight = 0;
-        margins.cyTopHeight = caption_height;
+        auto dpi = GetDpiForSystem();
+        user_scaling = static_cast<float>(dpi) / 96.0f;
+
+        MARGINS physical_margins { 0, 0, static_cast<int>(std::ceilf(user_scaling * caption_height)), 0 };
+        margins = { 0, 0, static_cast<int>(caption_height), 0 };
 
         window_class.cbSize = sizeof window_class;
         window_class.cbWndExtra = sizeof application_ptr;
@@ -17,21 +21,17 @@ namespace platform {
         window_class.lpfnWndProc = event_handler;
         window_class.lpszClassName = L"window_class";
         window_class.style = CS_VREDRAW | CS_HREDRAW;
-        // Do the icon for the taskbar yourself. :P
 
         RegisterClassEx(&window_class);
 
-        RECT window_rectangle{};
-        window_rectangle.top = 100;
-        window_rectangle.left = 100;
-        window_rectangle.right = width + window_rectangle.left;
-        window_rectangle.bottom = height + window_rectangle.top;
+        RECT window_rectangle { 0, 0, static_cast<int>(width), static_cast<int>(height)};
         AdjustWindowRect(&window_rectangle, WS_OVERLAPPEDWINDOW, false);
 
-        auto x = window_rectangle.left;
-        auto y = window_rectangle.top;
+        auto x = static_cast<int>(10 * user_scaling), y = x;
         auto adjusted_width = window_rectangle.right - window_rectangle.left;
         auto adjusted_height = window_rectangle.bottom - window_rectangle.top;
+        adjusted_width = static_cast<int>(user_scaling * adjusted_width);
+        adjusted_height = static_cast<int>(user_scaling * adjusted_height);
 
         system_window_handle = CreateWindowExW(
             WS_EX_NOREDIRECTIONBITMAP, window_class.lpszClassName, title.c_str(), WS_OVERLAPPEDWINDOW, x, y,
@@ -40,7 +40,7 @@ namespace platform {
 
         if (system_window_handle == nullptr) throw std::runtime_error{ "Failed to create a window." };
 
-        auto hr = DwmExtendFrameIntoClientArea(system_window_handle, &margins);
+        auto hr = DwmExtendFrameIntoClientArea(system_window_handle, &physical_margins);
         if (FAILED(hr)) throw std::runtime_error { "DWM failed to extend frame into the client area." };
 
     }

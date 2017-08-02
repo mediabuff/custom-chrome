@@ -81,8 +81,14 @@ namespace chrome {
             new_tab_symbol = std::make_unique<resource::image>(L"media/new_tab_symbol.png");
 
             renderer = std::make_unique<graphics::renderer>();
-            auto caption_area_expansion_height = 80; // A value like 45 would remove the caption in this demo (firefoxy/chromey).
-            window = std::make_unique<platform::window>(L"Chrome management", 1200, 700, caption_area_expansion_height, this, process_message);
+            auto caption_area_expansion_height = 80; // A value lower than 75 will remove the title
+
+            window = std::make_unique<platform::window>(
+                L"Chrome management", 1200, 600, 
+                caption_area_expansion_height, this, 
+                process_message
+            );
+
             renderer->attach_to_window(window->get_system_window_handle());
             window->show_window(); // Crucial separation that the window is valid when all the messages start flying.
 
@@ -115,9 +121,7 @@ namespace chrome {
 
         renderer->begin_draw();
 
-        RECT client_rectangle;
-        GetClientRect(window->get_system_window_handle(), &client_rectangle);
-
+        auto client_rectangle = window->get_client_area(); 
         auto margins = window->get_margins();
 
         graphics::rectangle<float> client_area {

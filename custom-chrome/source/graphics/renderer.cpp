@@ -1,6 +1,7 @@
 #include <array>
 
 #include <graphics/renderer.hpp>
+#include <com/runtime_validation.hpp>
 
 namespace graphics {
 
@@ -29,14 +30,14 @@ namespace graphics {
             D3D11_SDK_VERSION, &temporary_device, &received_feature_level, &temporary_context
         );
 
+        com::validate_result(hr, "Failed during creation of the D3D11 device.");
         device_context_d3d11 = com::make_unique(temporary_context);
         device_d3d11 = com::make_unique(temporary_device);
 
         ID2D1Factory* temporary_factory;
         hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &temporary_factory);
+        com::validate_result(hr, "Failed during creation of the D2D1 factory.");
         factory_d2d1 = com::make_unique(temporary_factory);
-
-        if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the D2D1 device." };
 
         factory_d2d1->GetDesktopDpi(&dpiX, &dpiY);
         auto properties = D2D1::RenderTargetProperties(
@@ -50,15 +51,15 @@ namespace graphics {
             DWRITE_FACTORY_TYPE_ISOLATED, __uuidof(IDWriteFactory),
             reinterpret_cast<IUnknown**>(&temporary_factory_dwrite)
         );
+        com::validate_result(hr, "Failed during creation of the DWrite factory.");
         factory_dwrite = com::make_unique(temporary_factory_dwrite);
-        if (FAILED(hr)) throw std::runtime_error{ "Failed during creation of the DWrite factory." };
 
         hr = CoInitialize(nullptr);
-        if (FAILED(hr)) throw std::runtime_error{ "Failed during CoInitialize." };
+        com::validate_result(hr, "Failed during CoInitialize().");
 
         IWICImagingFactory* temporary_factory_wic;
         hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&temporary_factory_wic));
-        if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the WIC imaging factory." };
+        com::validate_result(hr, "Failed during creation of the WIC factory.");
         factory_wic = com::make_unique(temporary_factory_wic);
 
         IDWriteTextFormat* temporary_text_format;
@@ -70,10 +71,11 @@ namespace graphics {
 
         IDXGIDevice* temporary_device_dxgi;
         device_d3d11->QueryInterface<IDXGIDevice>(&temporary_device_dxgi);
+        auto device_dxgi = com::make_unique<IDXGIDevice>(temporary_device_dxgi);
 
         ID2D1Device* temporary_device_d2d1;
-        D2D1CreateDevice(
-            temporary_device_dxgi,
+        hr = D2D1CreateDevice(
+            device_dxgi.get(),
             D2D1::CreationProperties(
                 D2D1_THREADING_MODE_SINGLE_THREADED,
                 D2D1_DEBUG_LEVEL_INFORMATION,
@@ -81,18 +83,18 @@ namespace graphics {
             ), &temporary_device_d2d1
         );
         device_d2d1 = com::make_unique(temporary_device_d2d1);
+        com::validate_result(hr, "Failed during creation of the D2D1 device.");
 
         ID2D1DeviceContext* temporary_device_context_d2d1;
         hr = device_d2d1->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &temporary_device_context_d2d1);
+        com::validate_result(hr, "Failed during creation of the resource creating D2D1 device context.");
         resource_device_context_d2d1 = com::make_unique(temporary_device_context_d2d1);
-        if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the resource D2D device context." };
+        resource_device_context_d2d1->SetDpi(dpiX, dpiX);
 
         IDCompositionDevice* temporary_device_dcomp;
         hr = DCompositionCreateDevice2(device_d2d1.get(), IID_PPV_ARGS(&temporary_device_dcomp));
+        com::validate_result(hr, "Failed during creation of the DComp device.");
         device_dcomp = com::make_unique(temporary_device_dcomp);
-        if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of the DComp device." };
-
-        temporary_device_dxgi->Release();
 
     }
 
@@ -102,8 +104,8 @@ namespace graphics {
 
         IDCompositionTarget* temporary_target;
         auto hr = device_dcomp->CreateTargetForHwnd(window_handle, true, &temporary_target);
+        com::validate_result(hr, "Failed during creation of the DComp window target.");
         window_target_dcomp = com::make_unique(temporary_target);
-        if (FAILED(hr)) throw std::runtime_error{ "Failed during the creation of DComp window target." };
 
         resize_buffer();
 
@@ -134,8 +136,11 @@ namespace graphics {
         ID2D1DeviceContext* temporary_device_context_d2d1; POINT offset = {};
         window_surface_dcomp->BeginDraw(nullptr, IID_PPV_ARGS(&temporary_device_context_d2d1), &offset);
         device_context_d2d1 = com::make_unique(temporary_device_context_d2d1);
-        offsetX = static_cast<float>(offset.x);
-        offsetY = static_cast<float>(offset.y);
+        device_context_d2d1->SetDpi(dpiX, dpiY);
+        auto offsetX = static_cast<float>(offset.x);
+        auto offsetY = static_cast<float>(offset.y);
+
+        device_context_d2d1->SetTransform(D2D1::Matrix3x2F::Translation(offsetX, offsetY));
 
         device_context_d2d1->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0, 0.0f));
 
@@ -153,6 +158,7 @@ namespace graphics {
 
         window_surface_dcomp->EndDraw();
         device_dcomp->Commit();
+        device_dcomp->WaitForCommitCompletion();
         primary_visual_dcomp.reset(nullptr);
 
     }
@@ -163,8 +169,8 @@ namespace graphics {
 
         device_context_d2d1->FillRectangle(
             D2D1::RectF(
-                fill_area.left + offsetX, fill_area.top + offsetY,
-                fill_area.right + offsetX, fill_area.bottom + offsetY
+                fill_area.left, fill_area.top,
+                fill_area.right, fill_area.bottom
             ), brush.get()
         );
 
@@ -175,8 +181,8 @@ namespace graphics {
         brush->SetColor(D2D1::ColorF(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a));
 
         device_context_d2d1->DrawLine(
-            D2D1::Point2F(start_point.x + offsetX, start_point.y + offsetY),
-            D2D1::Point2F(end_point.x + offsetX, end_point.y + offsetY),
+            D2D1::Point2F(start_point.x, start_point.y),
+            D2D1::Point2F(end_point.x, end_point.y),
             brush.get(), stroke_width
         );
 
@@ -185,14 +191,14 @@ namespace graphics {
     auto renderer::draw_image(resource::image const * image, point<float> const & top_left, float const opacity) -> void {
 
         auto resident_texture = get_texture(image->get_file_path());
-        auto dimensions = resident_texture->GetPixelSize();
+        auto dimensions = resident_texture->GetSize();
 
         device_context_d2d1->DrawBitmap(
             resident_texture,
             D2D1::RectF(
-                top_left.x + offsetX, top_left.y + offsetY,
-                top_left.x + static_cast<float>(dimensions.width) + offsetX,
-                top_left.y + static_cast<float>(dimensions.height) + offsetY
+                top_left.x, top_left.y,
+                top_left.x + static_cast<float>(dimensions.width),
+                top_left.y + static_cast<float>(dimensions.height)
             ),
             opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
         );
@@ -223,7 +229,7 @@ namespace graphics {
 
         brush->SetColor(D2D1::ColorF(text_color.r, text_color.g, text_color.b, text_color.a));
         device_context_d2d1->DrawTextLayout(
-            D2D1::Point2F(top_left.x + offsetX, top_left.y + offsetY),
+            D2D1::Point2F(top_left.x, top_left.y),
             text_layout.get(), brush.get()
         );
 
