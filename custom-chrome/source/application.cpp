@@ -46,8 +46,11 @@ auto CALLBACK process_message(HWND window_handle, UINT message, WPARAM wparam, L
 
     // Determine whether the cursor is near interactive points of the window
     else if ((message == WM_NCHITTEST) && (lr == 0)) {
+        auto dpi = GetDpiForSystem();
+        auto user_scaling = static_cast<float>(dpi) / 96.0f;
         auto caption_height = application->get_window_margins().cyTopHeight;
-        lr = compute_sector_of_window(window_handle, wparam, lparam, caption_height);
+        auto corrected_height = static_cast<int>(std::ceilf(user_scaling * caption_height));
+        lr = compute_sector_of_window(window_handle, wparam, lparam, corrected_height);
         if (lr != HTNOWHERE) return lr;
     }
 
