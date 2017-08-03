@@ -1,15 +1,16 @@
 # custom-chrome
 
-A repository dedicated to demonstrating how to build Win32 GUIs with content protruding into the non-client area on Windows 10 (down to Vista where DWM was introduced), while preserving the user's Windows theme settings, doing the bare minimum in handling window behavior.
+A repository dedicated to demonstrating how to build high-DPI aware Win32 GUIs with content protruding into the non-client area on Windows 10 (down to Vista where DWM was introduced), while preserving the user's Windows theme settings, doing the bare minimum in handling window behavior.
 
-You can find a short recap on how it works [here](https://github.com/oberth/custom-chrome/wiki). This was developed for demonstration purposes at the behest of a friend who brought it up as a curiosity, with minimal time invested being the driving principle. It doesn't need further development, hence there will be no further development. It is licensed under MIT, as Unlicense has issues in certain countries. Enjoy.
+![](http://i.imgur.com/UKcKYot.png)
+
+You can find a short recap on how it works [here](https://github.com/oberth/custom-chrome/wiki). This was developed for demonstration purposes at the behest of a friend who brought it up as a curiosity, with minimal time invested being the driving principle meaning the **code is quick and dirty**. It doesn't need further development, hence there will be no further development, maybe some feature here and there. It is licensed under MIT, as Unlicense has issues in certain countries. Enjoy.
 
 ## What this sample *isn't* about
 
 1. Code that you're supposed to drop into your code **(it is for demonstration purposes only)**.
 2. Building a framework you can use for your applications.
 3. Implementing any logic behind the pretty face of it, mockup is just to show the potential.
-4. Handling high-DPI displays because that's trivial and would unnecessarily complicate the sample.
 
 ![](http://i.imgur.com/DEdwte2.jpg)
 
