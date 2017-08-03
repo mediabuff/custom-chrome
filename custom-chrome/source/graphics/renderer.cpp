@@ -95,6 +95,10 @@ namespace graphics {
         hr = DCompositionCreateDevice2(device_d2d1.get(), IID_PPV_ARGS(&temporary_device_dcomp));
         com::validate_result(hr, "Failed during creation of the DComp device.");
         device_dcomp = com::make_unique(temporary_device_dcomp);
+        
+        IDCompositionVisual* temporary_visual;
+        device_dcomp->CreateVisual(&temporary_visual);
+        primary_visual_dcomp = com::make_unique(temporary_visual);
 
     }
 
@@ -106,6 +110,7 @@ namespace graphics {
         auto hr = device_dcomp->CreateTargetForHwnd(window_handle, true, &temporary_target);
         com::validate_result(hr, "Failed during creation of the DComp window target.");
         window_target_dcomp = com::make_unique(temporary_target);
+        window_target_dcomp->SetRoot(primary_visual_dcomp.get());
 
         resize_buffer();
 
@@ -113,25 +118,22 @@ namespace graphics {
 
     auto renderer::resize_buffer() -> void {
 
+    }
+
+    auto renderer::begin_draw() -> void {
+
         RECT window_rectangle;
         GetClientRect(associated_window, &window_rectangle);
 
         IDCompositionSurface* temporary_surface;
         device_dcomp->CreateSurface(
-            window_rectangle.right, window_rectangle.bottom, 
-            DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_ALPHA_MODE_PREMULTIPLIED, 
+            window_rectangle.right, window_rectangle.bottom,
+            DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_ALPHA_MODE_PREMULTIPLIED,
             &temporary_surface
         );
-        
+
         window_surface_dcomp = com::make_unique(temporary_surface);
-
-    }
-
-    auto renderer::begin_draw() -> void {
-
-        IDCompositionVisual* temporary_visual;
-        device_dcomp->CreateVisual(&temporary_visual);
-        primary_visual_dcomp = com::make_unique(temporary_visual);
+        primary_visual_dcomp->SetContent(window_surface_dcomp.get());
 
         ID2D1DeviceContext* temporary_device_context_d2d1; POINT offset = {};
         window_surface_dcomp->BeginDraw(nullptr, IID_PPV_ARGS(&temporary_device_context_d2d1), &offset);
@@ -140,12 +142,11 @@ namespace graphics {
         auto offsetX = static_cast<float>(offset.x);
         auto offsetY = static_cast<float>(offset.y);
 
-        device_context_d2d1->SetTransform(D2D1::Matrix3x2F::Translation(offsetX, offsetY));
+        device_context_d2d1->SetTransform(D2D1::Matrix3x2F::Translation(
+            offsetX * 96.0f / dpiX, offsetY * 96.0f / dpiY
+        ));
 
         device_context_d2d1->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0, 0.0f));
-
-        primary_visual_dcomp->SetContent(window_surface_dcomp.get());
-        window_target_dcomp->SetRoot(primary_visual_dcomp.get());
 
         ID2D1SolidColorBrush* temporary_brush;
         device_context_d2d1->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f), &temporary_brush);
@@ -157,9 +158,9 @@ namespace graphics {
     auto renderer::end_draw() -> void {
 
         window_surface_dcomp->EndDraw();
-        device_dcomp->Commit();
         device_dcomp->WaitForCommitCompletion();
-        primary_visual_dcomp.reset(nullptr);
+        device_dcomp->Commit();
+        window_surface_dcomp.reset(nullptr);
 
     }
 

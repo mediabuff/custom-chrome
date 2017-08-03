@@ -60,6 +60,7 @@ auto CALLBACK process_message(HWND window_handle, UINT message, WPARAM wparam, L
 
     else if (message == WM_SIZE) {
         application->on_size_changed();
+        InvalidateRect(window_handle, nullptr, false);
     }
 
     else if (message == WM_DESTROY) {
